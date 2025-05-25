@@ -1,17 +1,113 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getLoginFormData, handleLoginSubmit } from "@/actions/auth/login";
+import { getSignupFormData , handleSignupSubmit  } from "@/actions/auth/signup";
+import { toast } from "sonner";
+import { IAttributes } from "oneentry/dist/base/utils";
+
+interface SignUpFormData {
+  email: string;
+  password: string;
+  name: string;
+}
+
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState<IAttributes[]>([]);
+  const [inputValues, setInputValues] = useState<
+    Partial<SignUpFormData & LoginFormData>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>("Not valid");
+
+  useEffect(() => {
+    const type = searchParams.get("type");
+    setIsSignUp(type !== "login");
+  }, [searchParams]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+    const fetchData = isSignUp ? getSignupFormData : getLoginFormData;
+
+    fetchData()
+      .then((data) => setFormData(data))
+      .catch((err) => setError("Failed to load form data. Please try again."))
+      .finally(() => setIsLoading(false));
+  }, [isSignUp]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      if (isSignUp) {
+        if (inputValues.email && inputValues.password && inputValues.name) {
+          const response = await handleSignupSubmit(
+            inputValues as SignUpFormData
+          );
+
+          if ("identifier" in response) {
+            setInputValues({});
+            setIsSignUp(false);
+            toast("User has been created", {
+              description: "Please check you credentials to log in.",
+              duration: 5000,
+            });
+          } else {
+            setError("Please fill out all required fields.");
+          }
+        }
+      } else {
+        if (inputValues.email && inputValues.password) {
+          const response = await handleLoginSubmit(
+            inputValues as LoginFormData
+          );
+
+          if (response.message) {
+            setError(response.message);
+          }
+        } else {
+          setError("Please fill out all required fields.");
+        }
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setInputValues((prev) => ({ ...prev, [name]: value }));
+  };
 
   function toggleAuthMode() {
     setIsSignUp(!isSignUp);
+    setError(null);
+    setInputValues({}); // Reset input values when toggling auth mode
   }
+
   return (
     <div className="flex min-h-screen mt-7">
       <div className="w-full max-w-3xl mx-auto flex flex-col lg:flex-row p-3">
@@ -32,6 +128,56 @@ export default function AuthPage() {
                 : "Welcome back to SahandStore! Log in to continue your shopping journey."}
             </p>
           </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+            </div>
+          ) : (
+            <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
+              {formData.map((field: any) => (
+                <div key={field.marker}>
+                  <Label
+                    htmlFor={field.marker}
+                    className="text-base sm:text-lg text-gray-400 mb-1 sm:mb-2 block"
+                  >
+                    {field.localizeInfos.title}
+                  </Label>
+                  <Input
+                    id={field.marker}
+                    type={field.marker === "password" ? "password" : "text"}
+                    name={field.marker}
+                    className="text-base sm:text-lg p-4 sm:p-6"
+                    placeholder={field.localizeInfos.title}
+                    value={
+                      inputValues[field.marker as keyof typeof inputValues] ||
+                      ""
+                    }
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              ))}
+
+              {error && (
+                <div className="text-red-500 text-center mt-2">{error}</div>
+              )}
+              <div>
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white text-base sm:text-xl font-bold p-4 sm:p-6 rounded-md shadow-xl transition-colors duration-300 ease-in-out cursor-pointer"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                  ) : isSignUp ? (
+                    "sign Up"
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+
           <div className="mt-4 sm:mt-5 flex items-center justify-center">
             <p className="text-base sm:text-lg lg:text-xl text-gray-600">
               {isSignUp

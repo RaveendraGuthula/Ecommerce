@@ -19,7 +19,7 @@ async function setupApiclient(): Promise<ReturnType<typeof defineOneEntry>> {
     const refreshToken = await retrieveRefreshToken();
     // Create a new instance of the API client with the required configuration
     apiClient = defineOneEntry(apiUrl, {
-      token: process.env.ONEENTRY_PROJECT_TOKEN, // Token for authentication  , this is generated in the OneEntry dashboard
+      token: process.env.ONEENTRY_TOKEN, // Token for authentication  , this is generated in the OneEntry dashboard
       langCode: "en_US", // Language code for the API
       auth: {
         refreshToken: refreshToken || undefined,
