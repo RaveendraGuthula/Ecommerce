@@ -51,7 +51,7 @@ export const handleLoginSubmit=async(inputValues:{
             };
         }
 
-        (await cookies()).set("acess_token", response.accessToken,{
+        (await cookies()).set("access_token", response.accessToken,{
             maxAge: 60* 60 * 24, // 1 day
         });
 
