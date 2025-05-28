@@ -20,6 +20,8 @@ export default async function createOrder(
   }
 
   try {
+    console.log("hello")
+    console.log({accestoken:accessToken,orderData:orderData})
     // Create a new order using the provided order data
     const createdOrder = await apiClient.Orders.setAccessToken(
       accessToken
