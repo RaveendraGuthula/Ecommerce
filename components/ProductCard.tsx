@@ -3,25 +3,25 @@ import React from 'react';
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from './ui/button';
-// import useCartStore from '@/stores/cartStore';
+import useCartStore from '@/store/cartStore';
 import { IProduct } from '@/types/product';
-// import { toast } from 'sonner';
+import { toast } from 'sonner';
 
 const ProductCard = ({ product }: { product: IProduct }) => {
-//   const addToCart = useCartStore((state) => state.addToCart);
-//   const handleAddToCart = (product: IProduct) => {
-//     addToCart({
-//       id: product.id,
-//       name: product.attributeValues.p_title.value || 'Product',
-//       price: product.attributeValues.p_price.value || 0,
-//       quantity: 1,
-//       image: product.attributeValues.p_image.value.downloadLink,
-//     });
-//     toast('Added to Cart', {
-//       description: `${product.attributeValues.p_title.value} has been added to your cart.`,
-//       duration: 5000,
-//     });
-//   };
+  const addToCart = useCartStore((state) => state.addToCart);
+  const handleAddToCart = (product: IProduct) => {
+    addToCart({
+      id: product.id,
+      name: product.attributeValues.p_title.value || 'Product',
+      price: product.attributeValues.p_price.value || 0,
+      quantity: 1,
+      image: product.attributeValues.p_image.value.downloadLink,
+    });
+    toast('Added to Cart', {
+      description: `${product.attributeValues.p_title.value} has been added to your cart.`,
+      duration: 5000,
+    });
+  };
   return (
     <div>
       <div className='group relative  overflow-hidden group h-full flex flex-col rounded-lg shadow-lg border-2 border-gray-200 bg-white'>
@@ -55,7 +55,7 @@ const ProductCard = ({ product }: { product: IProduct }) => {
         <div className='p-4'>
           <Button
             className='w-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold cursor-pointer'
-            // onClick={() => handleAddToCart(product)}
+            onClick={() => handleAddToCart(product)}
           >
             <ShoppingCart className='w-5 h-5 mr-2' />
             Add to Cart
