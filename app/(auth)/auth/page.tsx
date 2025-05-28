@@ -46,7 +46,7 @@ export default function AuthPage() {
 
     fetchData()
       .then((data) => setFormData(data))
-      .catch((err) => setError("Failed to load form data. Please try again."))
+      .catch(() => setError("Failed to load form data. Please try again."))
       .finally(() => setIsLoading(false));
   }, [isSignUp]);
 
